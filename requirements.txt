@@ -1,0 +1,20 @@
+# Web app
+flask>=3.0.0
+gunicorn>=21.2.0
+
+# ML / NLP
+torch>=2.1.0
+transformers>=4.40.0
+accelerate>=0.27.0
+safetensors>=0.4.0
+sentencepiece>=0.1.99
+
+# Data / Training
+datasets>=2.18.0
+evaluate>=0.4.0
+numpy>=1.26.0
+pandas>=2.1.0
+scikit-learn>=1.4.0
+
+# HF Hub (for loading model weights in deployment)
+huggingface-hub>=0.22.0
