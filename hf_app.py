@@ -13,7 +13,7 @@ import gradio as gr
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # ── Config ────────────────────────────────────────────────────────────────────
-HF_MODEL_REPO = os.getenv("HF_MODEL_REPO", "RayyanAlam1/roberta-large-bias-detector")
+HF_MODEL_REPO = os.getenv("HF_MODEL_REPO", "RayyanAlam123/roberta-large-bias-detector")
 MAX_LENGTH    = 512
 DEVICE        = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -115,7 +115,7 @@ with gr.Blocks(
 
     gr.Markdown("""
     ---
-    **Model**: [`RayyanAlam1/roberta-large-bias-detector`](https://huggingface.co/RayyanAlam1/roberta-large-bias-detector) |
+    **Model**: [`RayyanAlam123/roberta-large-bias-detector`](https://huggingface.co/RayyanAlam123/roberta-large-bias-detector) |
     **Code**: [`GitHub`](https://github.com/RayyanAlam1/Bias-Detection)
     """)
 

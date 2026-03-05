@@ -76,5 +76,5 @@ jobs:
         run: |
           git config user.email "ci@github-actions.com"
           git config user.name "GitHub Actions"
-          git remote add hf https://RayyanAlam1:$HF_TOKEN@huggingface.co/spaces/RayyanAlam1/Bias-Detection
+          git remote add hf https://RayyanAlam123:$HF_TOKEN@huggingface.co/spaces/RayyanAlam123/Bias-Detection
           git push hf main --force
