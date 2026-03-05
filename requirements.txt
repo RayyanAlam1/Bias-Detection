@@ -1,4 +1,4 @@
-# Web app
+# Web app (local)
 flask>=3.0.0
 gunicorn>=21.2.0
 
@@ -16,5 +16,6 @@ numpy>=1.26.0
 pandas>=2.1.0
 scikit-learn>=1.4.0
 
-# HF Hub (for loading model weights in deployment)
+# HF Hub + Gradio (for HF Spaces deployment)
 huggingface-hub>=0.22.0
+gradio>=4.44.0
