@@ -38,7 +38,7 @@ print("✅ Model ready.")
 # ── Prediction function ───────────────────────────────────────────────────────
 def predict(text: str):
     if not text or not text.strip():
-        return "Please enter some text.", {}, ""
+        return "Please enter some text.", {}
 
     inputs = tokenizer(
         text.strip(),
@@ -61,7 +61,7 @@ def predict(text: str):
     probs_dict = {LABEL_INFO[i]["name"]: float(p) for i, p in enumerate(probs)}
     summary    = f"**{label_str}** bias detected with **{confidence:.1f}%** confidence."
 
-    return summary, probs_dict, label_str
+    return summary, probs_dict
 
 
 # ── Gradio UI ─────────────────────────────────────────────────────────────────
@@ -104,12 +104,12 @@ with gr.Blocks(
     submit_btn.click(
         fn=predict,
         inputs=text_input,
-        outputs=[summary_out, probs_out, gr.Textbox(visible=False)],
+        outputs=[summary_out, probs_out],
     )
     text_input.submit(
         fn=predict,
         inputs=text_input,
-        outputs=[summary_out, probs_out, gr.Textbox(visible=False)],
+        outputs=[summary_out, probs_out],
     )
 
     gr.Markdown("""

@@ -18,4 +18,4 @@ scikit-learn>=1.4.0
 
 # HF Hub + Gradio (for HF Spaces deployment)
 huggingface-hub>=0.22.0
-gradio>=4.44.0
+gradio>=5.23.0
