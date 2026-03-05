@@ -1,69 +1,88 @@
 """
 Unit tests for the News Bias Classifier web app.
-These tests mock the model so they run fast in CI (no GPU/weights needed).
+Mocks ALL heavy operations (safetensors load, tokenizer, model)
+so tests run in CI with no GPU, no model weights, no disk access.
 """
 import json
-import pytest
+import os
+import sys
+import importlib
+import importlib.util
 from unittest.mock import patch, MagicMock
+
 import numpy as np
-import sys, os
-
-# ── Patch heavy imports BEFORE importing app ──────────────────────────────────
-# This lets CI run without downloading the 1.3GB model
-mock_tokenizer = MagicMock()
-mock_tokenizer.return_value = {
-    "input_ids":      MagicMock(to=lambda d: MagicMock()),
-    "attention_mask": MagicMock(to=lambda d: MagicMock()),
-}
-
-mock_model = MagicMock()
-mock_logits = MagicMock()
-mock_logits.logits = MagicMock()
-
+import pytest
 import torch
 
-@pytest.fixture
-def client():
-    """Create a Flask test client with a mocked model."""
-    with patch("transformers.AutoTokenizer.from_pretrained") as mock_tok, \
-         patch("transformers.AutoModelForSequenceClassification.from_pretrained") as mock_mod, \
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+WEBAPP_DIR = os.path.join(os.path.dirname(__file__), "..", "webapp")
+TEMPLATES_DIR = os.path.join(WEBAPP_DIR, "templates")
+APP_PY = os.path.join(WEBAPP_DIR, "app.py")
+
+
+def _make_mock_tokenizer():
+    """Tokenizer that returns fixed tensors — no vocab/files needed."""
+    tok = MagicMock()
+    tok.return_value = {
+        "input_ids":      torch.zeros(1, 512, dtype=torch.long),
+        "attention_mask": torch.ones(1, 512, dtype=torch.long),
+    }
+    return tok
+
+
+def _make_mock_model():
+    """Model whose forward() returns logits predicting Center (label 1)."""
+    mod = MagicMock()
+    output = MagicMock()
+    output.logits = torch.tensor([[0.1, 2.5, 0.2]])   # Center wins
+    mod.return_value = output
+    mod.eval.return_value = None
+    mod.parameters.return_value = iter([torch.zeros(1)])
+    mod.load_state_dict = MagicMock()
+    mod.to = MagicMock(return_value=mod)
+    mod.half = MagicMock(return_value=mod)
+    return mod
+
+
+def _load_app_module():
+    """
+    Load webapp/app.py fresh with all heavy deps mocked.
+    Patches are applied BEFORE module-level code runs so
+    safetensors / transformers calls never execute.
+    """
+    for key in list(sys.modules.keys()):
+        if key in ("app", "webapp.app"):
+            del sys.modules[key]
+
+    mock_tok = _make_mock_tokenizer()
+    mock_mod = _make_mock_model()
+
+    with patch("transformers.AutoTokenizer.from_pretrained", return_value=mock_tok), \
+         patch("transformers.AutoConfig.from_pretrained", return_value=MagicMock()), \
+         patch("transformers.AutoModelForSequenceClassification.from_config",
+               return_value=mock_mod), \
+         patch("safetensors.torch.load_file", return_value={}), \
          patch("torch.cuda.is_available", return_value=False):
 
-        # Mock tokenizer output
-        tok_instance = MagicMock()
-        tok_instance.return_value = {
-            "input_ids":      torch.zeros(1, 512, dtype=torch.long),
-            "attention_mask": torch.ones(1, 512, dtype=torch.long),
-        }
-        mock_tok.return_value = tok_instance
-
-        # Mock model output — predict "Center" (label 1) with high confidence
-        mod_instance = MagicMock()
-        mod_instance.parameters.return_value = iter([torch.zeros(1)])
-        output = MagicMock()
-        output.logits = torch.tensor([[0.1, 2.5, 0.2]])   # Center wins
-        mod_instance.return_value = output
-        mod_instance.eval.return_value = None
-        mock_mod.return_value = mod_instance
-
-        # Import app after mocks are in place
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-        import importlib
-        if "webapp.app" in sys.modules:
-            del sys.modules["webapp.app"]
-        if "app" in sys.modules:
-            del sys.modules["app"]
-
-        spec = importlib.util.spec_from_file_location(
-            "app",
-            os.path.join(os.path.dirname(__file__), "..", "webapp", "app.py")
-        )
+        spec = importlib.util.spec_from_file_location("app", APP_PY)
         app_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(app_module)
 
-        app_module.app.config["TESTING"] = True
-        with app_module.app.test_client() as c:
-            yield c
+    return app_module
+
+
+# ─── Fixture ──────────────────────────────────────────────────────────────────
+
+@pytest.fixture
+def client():
+    """Flask test client with mocked model — no weights needed."""
+    app_module = _load_app_module()
+    app_module.app.config["TESTING"] = True
+    app_module.app.template_folder = TEMPLATES_DIR   # fix TemplateNotFound in CI
+    with app_module.app.test_client() as c:
+        yield c
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
