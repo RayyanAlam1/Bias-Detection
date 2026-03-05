@@ -8,7 +8,7 @@ sdk_version: "4.44.0"
 app_file: hf_app.py
 pinned: false
 license: mit
-short_description: Detect political bias (Left / Center / Right) in news using RoBERTa-Large
+short_description: Detect political bias in news with RoBERTa-Large
 ---
 
 # News Bias Classifier 📰
