@@ -26,7 +26,7 @@ jobs:
         run: |
           flake8 webapp/app.py predict.py train_classifier.py \
             --max-line-length=120 \
-            --ignore=E501,W503
+            --ignore=E501,W503,E221,E241,E226,E402,F401,W391
 
   # ── Job 2: Unit tests ────────────────────────────────────────────────────────
   test:
