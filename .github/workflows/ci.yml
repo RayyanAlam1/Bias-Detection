@@ -70,11 +70,28 @@ jobs:
           fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face Spaces
+      - name: Deploy to Hugging Face Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git config user.email "ci@github-actions.com"
-          git config user.name "GitHub Actions"
-          git remote add hf https://RayyanAlam123:$HF_TOKEN@huggingface.co/spaces/RayyanAlam123/Bias-Detection
-          git push hf main --force
+          pip install huggingface_hub
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          api.upload_folder(
+              folder_path=".",
+              repo_id="RayyanAlam123/Bias-Detection",
+              repo_type="space",
+              ignore_patterns=[
+                  ".git*", ".github*",
+                  "roberta-large-finetuned-v3/*",
+                  "webapp/*", "tests/*",
+                  "__pycache__/*", "*.pyc",
+                  "results_log.csv", "*.ipynb",
+                  "upload_model_to_hf.py",
+              ],
+              commit_message="ci: deploy from GitHub Actions",
+          )
+          print("Deploy complete!")
+          EOF
