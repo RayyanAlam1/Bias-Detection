@@ -6,10 +6,11 @@ Classes: 0=Left, 1=Center, 2=Right
 """
 
 import os
+import json
 import torch
 import numpy as np
 from flask import Flask, request, jsonify, render_template
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 MODEL_DIR  = os.path.join(
@@ -24,36 +25,46 @@ LABEL_INFO = {
         "name":        "Left",
         "emoji":       "🔵",
         "description": "Left-leaning political bias detected.",
-        "color":       "#3b82f6",   # blue
+        "color":       "#3b82f6",
     },
     1: {
         "name":        "Center",
         "emoji":       "⚖️",
         "description": "Centrist / balanced reporting detected.",
-        "color":       "#8b5cf6",   # purple
+        "color":       "#8b5cf6",
     },
     2: {
         "name":        "Right",
         "emoji":       "🔴",
         "description": "Right-leaning political bias detected.",
-        "color":       "#ef4444",   # red
+        "color":       "#ef4444",
     },
 }
 
-# ─── Load model once at startup ───────────────────────────────────────────────
+# ─── Load model — bypass safetensors memory-mapping ───────────────────────────
 print(f"Loading model from {MODEL_DIR} ...")
 print(f"Device: {DEVICE}  |  CUDA: {torch.cuda.is_available()}")
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
-model     = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_DIR,
-    low_cpu_mem_usage=True,
-    device_map=DEVICE,                                        # load straight to GPU — skips CPU RAM
-    dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
-)
+
+# Build empty model from config (no weights yet — uses almost no RAM)
+config    = AutoConfig.from_pretrained(MODEL_DIR)
+model     = AutoModelForSequenceClassification.from_config(config)
+
+# Load weights directly into GPU tensors using safetensors (avoids pagefile)
+weights_path = os.path.join(MODEL_DIR, "model.safetensors")
+from safetensors.torch import load_file as st_load
+state_dict = st_load(weights_path, device=DEVICE)   # loads straight into GPU RAM
+model.load_state_dict(state_dict, strict=False)
+del state_dict  # free the dict immediately
+
+model = model.to(DEVICE)
+if DEVICE == "cuda":
+    model = model.half()  # fp16 saves ~700MB VRAM
 model.eval()
 
 print("✅ Model loaded and ready.")
+
 
 # ─── Flask app ────────────────────────────────────────────────────────────────
 app = Flask(__name__)
