@@ -78,7 +78,17 @@ jobs:
           python - <<'EOF'
           import os
           from huggingface_hub import HfApi
-          api = HfApi(token=os.environ["HF_TOKEN"])
+          token = os.environ["HF_TOKEN"]
+          api = HfApi(token=token)
+          # Create the Space if it doesn't exist yet
+          api.create_repo(
+              repo_id="RayyanAlam123/Bias-Detection",
+              repo_type="space",
+              space_sdk="gradio",
+              exist_ok=True,
+              private=False,
+          )
+          # Upload only the files the Space needs
           api.upload_folder(
               folder_path=".",
               repo_id="RayyanAlam123/Bias-Detection",
