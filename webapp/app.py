@@ -55,8 +55,21 @@ model     = AutoModelForSequenceClassification.from_config(config)
 weights_path = os.path.join(MODEL_DIR, "model.safetensors")
 from safetensors.torch import load_file as st_load
 state_dict = st_load(weights_path, device=DEVICE)   # loads straight into GPU RAM
-model.load_state_dict(state_dict, strict=False)
-del state_dict  # free the dict immediately
+
+# Older HuggingFace checkpoints store LayerNorm params as .gamma / .beta
+# but current transformers expects .weight / .bias — rename them so every
+# key maps correctly and strict=True can be used.
+renamed = {}
+for k, v in state_dict.items():
+    if k.endswith(".gamma"):
+        k = k[:-6] + ".weight"
+    elif k.endswith(".beta"):
+        k = k[:-5] + ".bias"
+    renamed[k] = v
+del state_dict
+
+model.load_state_dict(renamed, strict=True)
+del renamed  # free the dict immediately
 
 model = model.to(DEVICE)
 if DEVICE == "cuda":
