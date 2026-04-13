@@ -81,8 +81,8 @@ jobs:
           token = os.environ["HF_TOKEN"]
           api = HfApi(token=token)
           # Create the Space if it doesn't exist yet
-          api.create_repo(
-              repo_id="RayyanAlam123/Bias-Detection",
+            api.create_repo(
+              repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
               space_sdk="gradio",
               exist_ok=True,
@@ -91,7 +91,7 @@ jobs:
           # Upload only the files the Space needs
           api.upload_folder(
               folder_path=".",
-              repo_id="RayyanAlam123/Bias-Detection",
+              repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
               ignore_patterns=[
                   ".git*", ".github*",

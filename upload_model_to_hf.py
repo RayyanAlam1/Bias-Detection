@@ -92,7 +92,7 @@ print(f"Prediction: {labels[probs.argmax()]}  ({probs.max()*100:.1f}% confidence
 
 ## Live Demo
 
-[Hugging Face Space](https://huggingface.co/spaces/RayyanAlam123/Bias-Detection)
+[Hugging Face Space](https://huggingface.co/spaces/RayyanAlam123/KhabarCheck)
 """
 
 # ── Upload ────────────────────────────────────────────────────────────────────

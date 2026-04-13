@@ -22,7 +22,7 @@ short_description: Detect political bias in news with RoBERTa-Large
 | **F1 Score** | 85.39% |
 | **Classes** | Left 🔵 · Center ⚖️ · Right 🔴 |
 | **Dataset** | 10,020 balanced news articles |
-| **Live Demo** | [HF Spaces](https://huggingface.co/spaces/RayyanAlam123/Bias-Detection) |
+| **Live Demo** | [HF Spaces](https://huggingface.co/spaces/RayyanAlam123/KhabarCheck) |
 
 ---
 
@@ -75,7 +75,7 @@ Bias-Detection/
 Every push to `main` automatically:
 1. **Lints** the code with flake8
 2. **Runs unit tests** with pytest (mocked model — no GPU needed)
-3. **Deploys** to [Hugging Face Spaces](https://huggingface.co/spaces/RayyanAlam123/Bias-Detection)
+3. **Deploys** to [Hugging Face Spaces](https://huggingface.co/spaces/RayyanAlam123/KhabarCheck)
 
 ---
 
