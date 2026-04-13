@@ -73,7 +73,7 @@ examples = [
 ]
 
 with gr.Blocks(
-    title="News Bias Classifier",
+    title="KhabarCheck",
     theme=gr.themes.Soft(primary_hue="purple"),
     css="""
         .result-box { font-size: 1.1em; padding: 10px; border-radius: 8px; }
@@ -81,7 +81,7 @@ with gr.Blocks(
     """,
 ) as demo:
     gr.Markdown("""
-    # 📰 News Bias Classifier
+    # 📰 KhabarCheck
     Detect **political bias** in news articles using `roberta-large` fine-tuned on 10,020 balanced news articles.
     **Accuracy: 85.43%** | Left 🔵 · Center ⚖️ · Right 🔴
     """)
@@ -115,7 +115,7 @@ with gr.Blocks(
     gr.Markdown("""
     ---
     **Model**: [`RayyanAlam123/roberta-large-bias-detector`](https://huggingface.co/RayyanAlam123/roberta-large-bias-detector) |
-    **Code**: [`GitHub`](https://github.com/RayyanAlam1/Bias-Detection)
+    **Code**: [`GitHub Repository`](https://github.com/RayyanAlam1/Bias-Detection)
     """)
 
 if __name__ == "__main__":

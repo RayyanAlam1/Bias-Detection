@@ -40,9 +40,9 @@ model-index:
             value: 0.8539
 ---
 
-# RoBERTa-Large News Bias Detector
+# KhabarCheck - RoBERTa-Large Bias Model
 
-Fine-tuned `roberta-large` for political bias classification in news articles.
+Fine-tuned `roberta-large` for political bias classification in news articles for KhabarCheck.
 
 ## Model Details
 

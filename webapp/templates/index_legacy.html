@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KhabarCheck</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_legacy.css') }}" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">📰</span>
+        <div>
+          <h1>KhabarCheck (Legacy)</h1>
+          <p class="subtitle">Original UI snapshot from April 13, 2026</p>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge blue">🔵 Left</span>
+        <span class="badge purple">⚖️ Center</span>
+        <span class="badge red">🔴 Right</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <label for="news-input" class="input-label">Paste a news article or headline</label>
+      <textarea id="news-input" placeholder="Paste a news article, paragraph, or headline here…" rows="8"></textarea>
+      <div class="char-count"><span id="char-count">0</span> characters</div>
+
+      <button id="predict-btn" onclick="predict()">
+        <span id="btn-text">🔍 Analyse Bias</span>
+        <span id="btn-spinner" class="spinner hidden"></span>
+      </button>
+    </div>
+
+    <div id="result-card" class="card result-card hidden">
+      <div class="result-header">
+        <span id="result-emoji" class="result-emoji"></span>
+        <div>
+          <div id="result-label" class="result-label"></div>
+          <div id="result-desc" class="result-desc"></div>
+        </div>
+        <div class="confidence-badge">
+          <span id="conf-value"></span>
+          <span class="conf-unit">confidence</span>
+        </div>
+      </div>
+
+      <div class="prob-section">
+        <div class="prob-title">Probability breakdown</div>
+
+        <div class="prob-row">
+          <span class="prob-label">🔵 Left</span>
+          <div class="prob-bar-bg"><div class="prob-bar blue" id="bar-left"></div></div>
+          <span class="prob-pct" id="pct-left"></span>
+        </div>
+
+        <div class="prob-row">
+          <span class="prob-label">⚖️ Center</span>
+          <div class="prob-bar-bg"><div class="prob-bar purple" id="bar-center"></div></div>
+          <span class="prob-pct" id="pct-center"></span>
+        </div>
+
+        <div class="prob-row">
+          <span class="prob-label">🔴 Right</span>
+          <div class="prob-bar-bg"><div class="prob-bar red" id="bar-right"></div></div>
+          <span class="prob-pct" id="pct-right"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-card" class="card error-card hidden">
+      <span>⚠️</span> <span id="error-msg"></span>
+    </div>
+  </main>
+
+  <footer>
+    <p>Legacy mode. Switch back to enhanced mode by setting USE_LEGACY_UI=0.</p>
+  </footer>
+
+  <script>
+    const textarea = document.getElementById("news-input");
+    textarea.addEventListener("input", () => {
+      document.getElementById("char-count").textContent = textarea.value.length;
+    });
+
+    textarea.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "Enter") predict();
+    });
+
+    async function predict() {
+      const text = textarea.value.trim();
+      if (!text) { showError("Please paste some text first."); return; }
+
+      setLoading(true);
+      hideCards();
+
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        const data = await res.json();
+        if (data.error) { showError(data.error); return; }
+        showResult(data);
+      } catch (err) {
+        showError("Could not reach the server. Make sure the app is running.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function showResult(data) {
+      document.getElementById("result-emoji").textContent  = data.emoji;
+      document.getElementById("result-label").textContent  = data.name + " Bias";
+      document.getElementById("result-label").style.color  = data.color;
+      document.getElementById("result-desc").textContent   = data.description;
+      document.getElementById("conf-value").textContent    = data.confidence + "%";
+
+      const p = data.probabilities;
+      setBar("bar-left", "pct-left", p["Left"]);
+      setBar("bar-center", "pct-center", p["Center"]);
+      setBar("bar-right", "pct-right", p["Right"]);
+      document.getElementById("result-card").classList.remove("hidden");
+    }
+
+    function setBar(barId, pctId, value) {
+      document.getElementById(barId).style.width = value + "%";
+      document.getElementById(pctId).textContent = value + "%";
+    }
+
+    function showError(msg) {
+      document.getElementById("error-msg").textContent = msg;
+      document.getElementById("error-card").classList.remove("hidden");
+    }
+
+    function hideCards() {
+      document.getElementById("result-card").classList.add("hidden");
+      document.getElementById("error-card").classList.add("hidden");
+    }
+
+    function setLoading(on) {
+      document.getElementById("predict-btn").disabled = on;
+      document.getElementById("btn-text").classList.toggle("hidden", on);
+      document.getElementById("btn-spinner").classList.toggle("hidden", !on);
+    }
+  </script>
+</body>
+</html>

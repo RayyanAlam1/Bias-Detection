@@ -132,6 +132,54 @@ def test_predict_missing_text_returns_400(client):
     assert resp.status_code == 400
 
 
+def test_predict_text_endpoint_returns_json(client):
+    """POST /predict_text should mirror /predict schema."""
+    resp = client.post(
+        "/predict_text",
+        data=json.dumps({"text": "A neutral policy update was released."}),
+        content_type="application/json",
+    )
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "sentence_analysis" in data
+    assert "sentence_count" in data
+
+
+def test_feedback_endpoint_accepts_agree(client):
+    """POST /feedback should persist lightweight feedback metadata."""
+    resp = client.post(
+        "/feedback",
+        data=json.dumps(
+            {
+                "feedback": "agree",
+                "source_type": "text",
+                "source_value": "sample text",
+                "predicted_label": "Center",
+            }
+        ),
+        content_type="application/json",
+    )
+    assert resp.status_code == 200
+    assert resp.get_json().get("ok") is True
+
+
+def test_feedback_endpoint_rejects_bad_value(client):
+    """POST /feedback should validate allowed values."""
+    resp = client.post(
+        "/feedback",
+        data=json.dumps(
+            {
+                "feedback": "maybe",
+                "source_type": "text",
+                "source_value": "sample text",
+                "predicted_label": "Center",
+            }
+        ),
+        content_type="application/json",
+    )
+    assert resp.status_code == 400
+
+
 def test_probabilities_sum_to_100(client):
     """All 3 class probabilities should sum to ~100%."""
     resp = client.post(

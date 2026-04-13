@@ -1,5 +1,5 @@
 ---
-title: News Bias Classifier
+title: KhabarCheck
 emoji: 📰
 colorFrom: blue
 colorTo: red
@@ -11,7 +11,7 @@ license: mit
 short_description: Detect political bias in news with RoBERTa-Large
 ---
 
-# News Bias Classifier 📰
+# KhabarCheck 📰
 
 **Detect political bias in news articles** using a fine-tuned `roberta-large` model.
 
@@ -76,6 +76,57 @@ Every push to `main` automatically:
 1. **Lints** the code with flake8
 2. **Runs unit tests** with pytest (mocked model — no GPU needed)
 3. **Deploys** to [Hugging Face Spaces](https://huggingface.co/spaces/RayyanAlam123/Bias-Detection)
+
+---
+
+## ✨ New App Features (Web UI)
+
+- **Dual input mode**: analyze pasted text or a live article URL
+- **Sentence-level breakdown**: class/confidence shown for up to 12 sentences
+- **User feedback capture**: Agree/Disagree signals are logged to `feedback_logs.jsonl`
+
+New API routes:
+- `POST /predict_text`
+- `POST /predict_url`
+- `POST /feedback`
+
+Backward compatibility:
+- Existing `POST /predict` is still available.
+
+---
+
+## 🔁 Safe Revert / Legacy Mode
+
+If anything goes wrong, you can immediately revert UI behavior:
+
+1. Open legacy page directly: `http://127.0.0.1:5000/legacy`
+2. Or start app in legacy mode:
+
+```powershell
+$env:USE_LEGACY_UI="1"
+python run_app.py
+```
+
+To return to enhanced UI:
+
+```powershell
+$env:USE_LEGACY_UI="0"
+python run_app.py
+```
+
+Legacy snapshots are saved in:
+- `webapp/legacy_backup/index_2026-04-13.html`
+- `webapp/legacy_backup/style_2026-04-13.css`
+- `webapp/legacy_backup/app_2026-04-13.py`
+
+Full backend rollback (PowerShell):
+
+```powershell
+Copy-Item .\webapp\legacy_backup\app_2026-04-13.py .\webapp\app.py -Force
+Copy-Item .\webapp\templates\index_legacy.html .\webapp\templates\index.html -Force
+Copy-Item .\webapp\static\style_legacy.css .\webapp\static\style.css -Force
+python run_app.py
+```
 
 ---
 

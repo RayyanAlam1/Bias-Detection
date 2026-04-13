@@ -3,156 +3,352 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>News Bias Classifier</title>
+  <title>KhabarCheck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
-
-  <!-- ── Header ── -->
-  <header>
-    <div class="header-inner">
-      <div class="logo">
-        <span class="logo-icon">📰</span>
-        <div>
-          <h1>News Bias Classifier</h1>
-          <p class="subtitle">Powered by RoBERTa-Large &nbsp;·&nbsp; 85.43% Accuracy</p>
-        </div>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div>
+        <h1>KhabarCheck</h1>
+        <p>RoBERTa-Large classification plus sentence-level inspection</p>
       </div>
-      <div class="badges">
-        <span class="badge blue">🔵 Left</span>
-        <span class="badge purple">⚖️ Center</span>
-        <span class="badge red">🔴 Right</span>
+      <div class="topbar-actions">
+        <a href="/legacy" class="ghost-link">Legacy View</a>
       </div>
     </div>
   </header>
 
-  <!-- ── Main ── -->
-  <main>
-    <div class="card">
-      <label for="news-input" class="input-label">Paste a news article or headline</label>
-      <textarea
-        id="news-input"
-        placeholder="Paste a news article, paragraph, or headline here…"
-        rows="8"
-      ></textarea>
-      <div class="char-count"><span id="char-count">0</span> characters</div>
+  <main class="shell layout">
+    <section class="panel input-panel">
+      <div class="mode-switch" role="tablist" aria-label="Input mode">
+        <button id="mode-text" class="mode-btn active" onclick="setMode('text')" aria-selected="true">Text</button>
+        <button id="mode-url" class="mode-btn" onclick="setMode('url')" aria-selected="false">URL</button>
+      </div>
 
-      <button id="predict-btn" onclick="predict()">
-        <span id="btn-text">🔍 Analyse Bias</span>
-        <span id="btn-spinner" class="spinner hidden"></span>
-      </button>
-    </div>
+      <div id="text-box" class="input-box">
+        <label for="news-input">Paste article text</label>
+        <textarea id="news-input" rows="10" placeholder="Paste a full news paragraph or article for bias analysis..."></textarea>
+      </div>
 
-    <!-- ── Result card ── -->
-    <div id="result-card" class="card result-card hidden">
-      <div class="result-header">
-        <span id="result-emoji" class="result-emoji"></span>
+      <div id="url-box" class="input-box hidden">
+        <label for="news-url">Paste article URL</label>
+        <input id="news-url" type="url" placeholder="https://example.com/news-story" />
+      </div>
+
+      <div class="actions-row">
+        <button id="predict-btn" onclick="analyse()">
+          <span id="btn-text">Run Analysis</span>
+          <span id="btn-spinner" class="spinner hidden"></span>
+        </button>
+        <span id="input-meta" class="input-meta">Ready</span>
+      </div>
+    </section>
+
+    <section id="result-card" class="panel result-panel hidden">
+      <div class="result-head">
         <div>
-          <div id="result-label" class="result-label"></div>
+          <div id="result-title" class="result-title"></div>
           <div id="result-desc" class="result-desc"></div>
         </div>
-        <div class="confidence-badge">
-          <span id="conf-value"></span>
-          <span class="conf-unit">confidence</span>
+        <div id="result-confidence" class="confidence-pill"></div>
+      </div>
+
+      <div id="url-meta" class="url-meta hidden"></div>
+
+      <div id="viz-warning" class="viz-warning hidden">
+        Interactive charts are unavailable in this browser/session. Showing numeric results instead.
+      </div>
+
+      <div class="insight-grid">
+        <div class="insight-card">
+          <h3>Model Confidence</h3>
+          <canvas id="confidence-gauge" height="180"></canvas>
+        </div>
+        <div class="insight-card">
+          <h3>Class Probability Mix</h3>
+          <canvas id="probability-chart" height="180"></canvas>
         </div>
       </div>
 
-      <!-- Probability bars -->
-      <div class="prob-section">
-        <div class="prob-title">Probability breakdown</div>
-
-        <div class="prob-row">
-          <span class="prob-label">🔵 Left</span>
-          <div class="prob-bar-bg">
-            <div class="prob-bar blue" id="bar-left"></div>
-          </div>
-          <span class="prob-pct" id="pct-left"></span>
-        </div>
-
-        <div class="prob-row">
-          <span class="prob-label">⚖️ Center</span>
-          <div class="prob-bar-bg">
-            <div class="prob-bar purple" id="bar-center"></div>
-          </div>
-          <span class="prob-pct" id="pct-center"></span>
-        </div>
-
-        <div class="prob-row">
-          <span class="prob-label">🔴 Right</span>
-          <div class="prob-bar-bg">
-            <div class="prob-bar red" id="bar-right"></div>
-          </div>
-          <span class="prob-pct" id="pct-right"></span>
-        </div>
+      <div class="decision-panel">
+        <h3>Decision Insights</h3>
+        <p id="decision-summary"></p>
       </div>
-    </div>
 
-    <!-- ── Error card ── -->
-    <div id="error-card" class="card error-card hidden">
-      <span>⚠️</span> <span id="error-msg"></span>
-    </div>
+      <div class="bars">
+        <div class="bar-row"><span>Left</span><div class="bar-bg"><div id="bar-left" class="bar left"></div></div><span id="pct-left"></span></div>
+        <div class="bar-row"><span>Center</span><div class="bar-bg"><div id="bar-center" class="bar center"></div></div><span id="pct-center"></span></div>
+        <div class="bar-row"><span>Right</span><div class="bar-bg"><div id="bar-right" class="bar right"></div></div><span id="pct-right"></span></div>
+      </div>
+
+      <div class="feedback-row">
+        <span>Is this prediction useful?</span>
+        <button class="small-btn" onclick="sendFeedback('agree')">Agree</button>
+        <button class="small-btn" onclick="sendFeedback('disagree')">Disagree</button>
+        <span id="feedback-status" class="feedback-status"></span>
+      </div>
+    </section>
+
+    <section id="sentence-card" class="panel sentence-panel hidden">
+      <h2>Sentence Breakdown</h2>
+      <p id="sentence-meta" class="sentence-meta"></p>
+      <div id="sentence-list" class="sentence-list"></div>
+    </section>
+
+    <section id="error-card" class="panel error-panel hidden">
+      <strong>Request failed:</strong>
+      <span id="error-msg"></span>
+    </section>
   </main>
 
-  <!-- ── Footer ── -->
-  <footer>
-    <p>FYP &nbsp;·&nbsp; RoBERTa-Large fine-tuned on balanced news bias dataset (10,020 articles, 3 classes)</p>
-  </footer>
-
   <script>
-    // Character counter
-    const textarea = document.getElementById("news-input");
-    textarea.addEventListener("input", () => {
-      document.getElementById("char-count").textContent = textarea.value.length;
-    });
+    let inputMode = "text";
+    let lastResponse = null;
+    let probabilityChart = null;
+    let confidenceGauge = null;
 
-    // Also allow Ctrl+Enter to submit
-    textarea.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key === "Enter") predict();
-    });
+    function setMode(mode) {
+      inputMode = mode;
+      document.getElementById("mode-text").classList.toggle("active", mode === "text");
+      document.getElementById("mode-url").classList.toggle("active", mode === "url");
+      document.getElementById("text-box").classList.toggle("hidden", mode !== "text");
+      document.getElementById("url-box").classList.toggle("hidden", mode !== "url");
+      document.getElementById("input-meta").textContent = mode === "text" ? "Text mode" : "URL mode";
+    }
 
-    async function predict() {
-      const text = textarea.value.trim();
-      if (!text) { showError("Please paste some text first."); return; }
-
-      setLoading(true);
+    async function analyse() {
       hideCards();
+      setLoading(true);
+      document.getElementById("feedback-status").textContent = "";
+
+      let endpoint = "/predict_text";
+      let payload = {};
+
+      if (inputMode === "text") {
+        const text = document.getElementById("news-input").value.trim();
+        if (!text) { showError("Please provide some article text."); setLoading(false); return; }
+        payload = { text };
+      } else {
+        endpoint = "/predict_url";
+        const url = document.getElementById("news-url").value.trim();
+        if (!url) { showError("Please provide a valid URL."); setLoading(false); return; }
+        payload = { url };
+      }
 
       try {
-        const res = await fetch("/predict", {
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
-
-        if (data.error) { showError(data.error); return; }
-
+        if (!res.ok || data.error) {
+          showError(data.error || "Unknown server error");
+          return;
+        }
+        lastResponse = data;
         showResult(data);
       } catch (err) {
-        showError("Could not reach the server. Make sure the app is running.");
+        showError("Could not connect to the server.");
       } finally {
         setLoading(false);
       }
     }
 
     function showResult(data) {
-      document.getElementById("result-emoji").textContent  = data.emoji;
-      document.getElementById("result-label").textContent  = data.name + " Bias";
-      document.getElementById("result-label").style.color  = data.color;
-      document.getElementById("result-desc").textContent   = data.description;
-      document.getElementById("conf-value").textContent    = data.confidence + "%";
+      document.getElementById("result-title").textContent = `${data.emoji} ${data.name} Bias`;
+      document.getElementById("result-title").style.color = data.color;
+      document.getElementById("result-desc").textContent = data.description;
+      document.getElementById("result-confidence").textContent = `${data.confidence}% confidence`;
+      document.getElementById("result-card").classList.remove("hidden");
 
       const p = data.probabilities;
-      setBar("bar-left",    "pct-left",    p["Left"]);
-      setBar("bar-center",  "pct-center",  p["Center"]);
-      setBar("bar-right",   "pct-right",   p["Right"]);
+      setBar("bar-left", "pct-left", p["Left"]);
+      setBar("bar-center", "pct-center", p["Center"]);
+      setBar("bar-right", "pct-right", p["Right"]);
 
-      document.getElementById("result-card").classList.remove("hidden");
+      const urlMeta = document.getElementById("url-meta");
+      if (data.source_url) {
+        urlMeta.classList.remove("hidden");
+        const title = data.article_title ? `Title: ${data.article_title}` : "Title unavailable";
+        urlMeta.textContent = `${title} | Extracted ${data.extracted_chars} chars`;
+      } else {
+        urlMeta.classList.add("hidden");
+        urlMeta.textContent = "";
+      }
+
+      renderOverallCharts(data);
+      renderDecisionSummary(data);
+      renderSentenceAnalysis(data.sentence_analysis || []);
+    }
+
+    function renderOverallCharts(data) {
+      const warning = document.getElementById("viz-warning");
+      if (typeof Chart === "undefined") {
+        warning.classList.remove("hidden");
+        return;
+      }
+      warning.classList.add("hidden");
+
+      const probs = data.probabilities;
+      const values = [probs.Left || 0, probs.Center || 0, probs.Right || 0];
+
+      if (probabilityChart) probabilityChart.destroy();
+      probabilityChart = new Chart(document.getElementById("probability-chart"), {
+        type: "bar",
+        data: {
+          labels: ["Left", "Center", "Right"],
+          datasets: [{
+            data: values,
+            backgroundColor: ["#3b82f6", "#f59e0b", "#ef4444"],
+            borderRadius: 8,
+            maxBarThickness: 46
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: (v) => `${v}%` },
+              grid: { color: "rgba(72, 101, 129, 0.15)" }
+            },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      const confidence = Number(data.confidence || 0);
+      if (confidenceGauge) confidenceGauge.destroy();
+      confidenceGauge = new Chart(document.getElementById("confidence-gauge"), {
+        type: "doughnut",
+        data: {
+          labels: ["Confidence", "Remaining"],
+          datasets: [{
+            data: [confidence, 100 - confidence],
+            backgroundColor: [data.color || "#2a9d8f", "#e2e8f0"],
+            borderWidth: 0,
+            cutout: "74%"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        },
+        plugins: [{
+          id: "gaugeText",
+          afterDraw(chart) {
+            const { ctx } = chart;
+            const center = chart.getDatasetMeta(0).data[0];
+            if (!center) return;
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#102a43";
+            ctx.font = "700 24px 'Space Grotesk'";
+            ctx.fillText(`${Math.round(confidence)}%`, center.x, center.y + 3);
+            ctx.font = "500 12px 'IBM Plex Sans'";
+            ctx.fillStyle = "#486581";
+            ctx.fillText("Model confidence", center.x, center.y + 24);
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    function renderDecisionSummary(data) {
+      const probs = data.probabilities;
+      const ranked = Object.entries(probs).sort((a, b) => b[1] - a[1]);
+      const best = ranked[0];
+      const second = ranked[1];
+      const margin = Math.max(0, best[1] - second[1]).toFixed(2);
+      const certainty = margin >= 20 ? "high" : margin >= 10 ? "moderate" : "low";
+      const summary = `${best[0]} leads by ${margin}% over ${second[0]}. This indicates ${certainty} separation between top classes for this text.`;
+      document.getElementById("decision-summary").textContent = summary;
+    }
+
+    function renderSentenceAnalysis(items) {
+      const card = document.getElementById("sentence-card");
+      const list = document.getElementById("sentence-list");
+      const meta = document.getElementById("sentence-meta");
+
+      list.innerHTML = "";
+      if (!items.length) {
+        card.classList.add("hidden");
+        return;
+      }
+
+      meta.textContent = `Showing ${items.length} sentence-level predictions`;
+
+      for (const item of items) {
+        const row = document.createElement("div");
+        row.className = `sentence-item s-${item.name.toLowerCase()}`;
+        row.innerHTML = `
+          <div class="sentence-tag">${item.emoji} ${item.name} (${item.confidence}%)</div>
+          <div class="sentence-text">${escapeHtml(item.text)}</div>
+        `;
+        list.appendChild(row);
+      }
+
+      card.classList.remove("hidden");
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
     }
 
     function setBar(barId, pctId, value) {
-      document.getElementById(barId).style.width   = value + "%";
-      document.getElementById(pctId).textContent   = value + "%";
+      document.getElementById(barId).style.width = `${value}%`;
+      document.getElementById(pctId).textContent = `${value}%`;
+    }
+
+    async function sendFeedback(feedback) {
+      if (!lastResponse) return;
+
+      const sourceValue = inputMode === "url"
+        ? document.getElementById("news-url").value.trim()
+        : document.getElementById("news-input").value.trim().slice(0, 1200);
+
+      try {
+        const res = await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            feedback,
+            source_type: inputMode,
+            source_value: sourceValue,
+            predicted_label: lastResponse.name
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          document.getElementById("feedback-status").textContent = "Saved";
+        } else {
+          document.getElementById("feedback-status").textContent = "Not saved";
+        }
+      } catch (err) {
+        document.getElementById("feedback-status").textContent = "Not saved";
+      }
+    }
+
+    function hideCards() {
+      document.getElementById("result-card").classList.add("hidden");
+      document.getElementById("sentence-card").classList.add("hidden");
+      document.getElementById("error-card").classList.add("hidden");
     }
 
     function showError(msg) {
@@ -160,15 +356,11 @@
       document.getElementById("error-card").classList.remove("hidden");
     }
 
-    function hideCards() {
-      document.getElementById("result-card").classList.add("hidden");
-      document.getElementById("error-card").classList.add("hidden");
-    }
-
     function setLoading(on) {
       document.getElementById("predict-btn").disabled = on;
       document.getElementById("btn-text").classList.toggle("hidden", on);
       document.getElementById("btn-spinner").classList.toggle("hidden", !on);
+      document.getElementById("input-meta").textContent = on ? "Analysing..." : (inputMode === "text" ? "Text mode" : "URL mode");
     }
   </script>
 </body>
