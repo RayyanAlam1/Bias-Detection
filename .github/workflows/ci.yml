@@ -53,7 +53,7 @@ jobs:
           pip install --upgrade pip
           pip install flask pytest
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers>=4.40.0 numpy pandas scikit-learn huggingface-hub safetensors
+          pip install transformers>=4.40.0 numpy pandas scikit-learn huggingface-hub safetensors requests beautifulsoup4
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
