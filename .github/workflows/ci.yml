@@ -74,12 +74,28 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          pip install huggingface_hub
+          pip install "huggingface_hub>=0.24.0"
           python - <<'EOF'
           import os
+          import sys
           from huggingface_hub import HfApi
-          token = os.environ["HF_TOKEN"]
+
+          token = os.getenv("HF_TOKEN")
+          if not token:
+              print("ERROR: Missing Hugging Face token. Set GitHub secret HF_TOKEN.")
+              sys.exit(1)
+
           api = HfApi(token=token)
+
+          # Validate token early so failures are explicit in CI logs.
+          try:
+              who = api.whoami(token=token)
+              print(f"Authenticated to Hugging Face as: {who.get('name', 'unknown')}")
+          except Exception as exc:
+              print(f"ERROR: Hugging Face authentication failed: {exc}")
+              print("Check that the token has Write permissions for Spaces.")
+              sys.exit(1)
+
           # Create the Space if it doesn't exist yet
           api.create_repo(
               repo_id="RayyanAlam123/KhabarCheck",
