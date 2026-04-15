@@ -81,7 +81,7 @@ jobs:
           token = os.environ["HF_TOKEN"]
           api = HfApi(token=token)
           # Create the Space if it doesn't exist yet
-            api.create_repo(
+          api.create_repo(
               repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
               space_sdk="gradio",
