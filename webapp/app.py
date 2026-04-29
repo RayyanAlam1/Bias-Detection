@@ -24,6 +24,7 @@ MODEL_DIR  = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "roberta-large-finetuned-v3", "checkpoint-502"
 )
+MODEL_REPO = os.getenv("HF_MODEL_REPO", "").strip()
 MAX_LENGTH = 512
 DEVICE     = "cuda" if torch.cuda.is_available() else "cpu"
 ROOT_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,39 +53,51 @@ LABEL_INFO = {
     },
 }
 
-# ─── Load model — bypass safetensors memory-mapping ───────────────────────────
-print(f"Loading model from {MODEL_DIR} ...")
+# ─── Load model ───────────────────────────────────────────────────────────────
 print(f"Device: {DEVICE}  |  CUDA: {torch.cuda.is_available()}")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+if MODEL_REPO:
+    print(f"Loading model from HF Hub: {MODEL_REPO} ...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_REPO)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_REPO,
+        torch_dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
+    )
+    model = model.to(DEVICE)
+    if DEVICE == "cuda":
+        model = model.half()
+else:
+    print(f"Loading model from {MODEL_DIR} ...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 
-# Build empty model from config (no weights yet — uses almost no RAM)
-config    = AutoConfig.from_pretrained(MODEL_DIR)
-model     = AutoModelForSequenceClassification.from_config(config)
+    # Build empty model from config (no weights yet — uses almost no RAM)
+    config    = AutoConfig.from_pretrained(MODEL_DIR)
+    model     = AutoModelForSequenceClassification.from_config(config)
 
-# Load weights directly into GPU tensors using safetensors (avoids pagefile)
-weights_path = os.path.join(MODEL_DIR, "model.safetensors")
-from safetensors.torch import load_file as st_load
-state_dict = st_load(weights_path, device=DEVICE)   # loads straight into GPU RAM
+    # Load weights directly into GPU tensors using safetensors (avoids pagefile)
+    weights_path = os.path.join(MODEL_DIR, "model.safetensors")
+    from safetensors.torch import load_file as st_load
+    state_dict = st_load(weights_path, device=DEVICE)   # loads straight into GPU RAM
 
-# Older HuggingFace checkpoints store LayerNorm params as .gamma / .beta
-# but current transformers expects .weight / .bias — rename them so every
-# key maps correctly and strict=True can be used.
-renamed = {}
-for k, v in state_dict.items():
-    if k.endswith(".gamma"):
-        k = k[:-6] + ".weight"
-    elif k.endswith(".beta"):
-        k = k[:-5] + ".bias"
-    renamed[k] = v
-del state_dict
+    # Older HuggingFace checkpoints store LayerNorm params as .gamma / .beta
+    # but current transformers expects .weight / .bias — rename them so every
+    # key maps correctly and strict=True can be used.
+    renamed = {}
+    for k, v in state_dict.items():
+        if k.endswith(".gamma"):
+            k = k[:-6] + ".weight"
+        elif k.endswith(".beta"):
+            k = k[:-5] + ".bias"
+        renamed[k] = v
+    del state_dict
 
-model.load_state_dict(renamed, strict=True)
-del renamed  # free the dict immediately
+    model.load_state_dict(renamed, strict=True)
+    del renamed  # free the dict immediately
 
-model = model.to(DEVICE)
-if DEVICE == "cuda":
-    model = model.half()  # fp16 saves ~700MB VRAM
+    model = model.to(DEVICE)
+    if DEVICE == "cuda":
+        model = model.half()  # fp16 saves ~700MB VRAM
+
 model.eval()
 
 print("✅ Model loaded and ready.")
@@ -282,4 +295,4 @@ if __name__ == "__main__":
     print("  Model : roberta-large (85.43% accuracy)")
     print("  URL   : http://127.0.0.1:5000")
     print("="*55 + "\n")
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=int(os.getenv("PORT", "5000")))

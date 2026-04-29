@@ -3,9 +3,7 @@ title: KhabarCheck
 emoji: 📰
 colorFrom: blue
 colorTo: red
-sdk: gradio
-sdk_version: "5.23.0"
-app_file: hf_app.py
+sdk: docker
 pinned: false
 license: mit
 short_description: Detect political bias in news with RoBERTa-Large
@@ -58,7 +56,8 @@ Bias-Detection/
 │   │   └── index.html    # Frontend UI
 │   └── static/
 │       └── style.css
-├── hf_app.py             # Gradio app for HF Spaces deployment
+├── Dockerfile            # HF Spaces deployment entrypoint
+├── hf_app.py             # Legacy Gradio app for earlier deployment attempts
 ├── fine_tuning.ipynb     # Training notebook
 ├── train_classifier.py   # CLI training script
 ├── predict.py            # CLI prediction script

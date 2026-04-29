@@ -100,19 +100,20 @@ jobs:
           api.create_repo(
               repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
-              space_sdk="gradio",
+              space_sdk="docker",
               exist_ok=True,
               private=False,
           )
-          # Upload only the files the Space needs
+            # Upload only the files the Docker Space needs
           api.upload_folder(
               folder_path=".",
               repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
               allow_patterns=[
-                "hf_app.py",
+                "Dockerfile",
                 "README.md",
                 "requirements.txt",
+                "webapp/**",
               ],
               commit_message="ci: deploy from GitHub Actions",
           )
