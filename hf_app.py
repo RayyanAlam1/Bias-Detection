@@ -28,7 +28,7 @@ print(f"Loading model from HF Hub: {HF_MODEL_REPO}  (device={DEVICE})")
 tokenizer = AutoTokenizer.from_pretrained(HF_MODEL_REPO)
 model = AutoModelForSequenceClassification.from_pretrained(
     HF_MODEL_REPO,
-    dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
+    torch_dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
 )
 model = model.to(DEVICE)
 model.eval()

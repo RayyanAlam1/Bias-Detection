@@ -109,13 +109,10 @@ jobs:
               folder_path=".",
               repo_id="RayyanAlam123/KhabarCheck",
               repo_type="space",
-              ignore_patterns=[
-                  ".git*", ".github*",
-                  "roberta-large-finetuned-v3/*",
-                  "webapp/*", "tests/*",
-                  "__pycache__/*", "*.pyc",
-                  "results_log.csv", "*.ipynb",
-                  "upload_model_to_hf.py",
+              allow_patterns=[
+                "hf_app.py",
+                "README.md",
+                "requirements.txt",
               ],
               commit_message="ci: deploy from GitHub Actions",
           )
