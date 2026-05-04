@@ -107,6 +107,8 @@ def test_predict_returns_json(client):
     assert "name" in data
     assert "confidence" in data
     assert "probabilities" in data
+    assert "reasoning" in data
+    assert "summary" in data["reasoning"]
     assert data["name"] in ("Left", "Center", "Right")
     assert 0 <= data["confidence"] <= 100
 

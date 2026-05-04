@@ -80,6 +80,29 @@
         <p id="decision-summary"></p>
       </div>
 
+      <div id="reasoning-panel" class="reasoning-panel hidden">
+        <h3>Model Reasoning</h3>
+        <p id="reasoning-summary" class="reasoning-summary"></p>
+        <div class="reasoning-metrics">
+          <div class="reasoning-metric">
+            <span class="label">Top prediction</span>
+            <span id="reasoning-top" class="value"></span>
+          </div>
+          <div class="reasoning-metric">
+            <span class="label">Runner-up</span>
+            <span id="reasoning-runner" class="value"></span>
+          </div>
+          <div class="reasoning-metric">
+            <span class="label">Margin</span>
+            <span id="reasoning-margin" class="value"></span>
+          </div>
+        </div>
+        <div>
+          <p class="evidence-title">Top evidence sentences</p>
+          <div id="reasoning-evidence" class="evidence-list"></div>
+        </div>
+      </div>
+
       <div class="bars">
         <div class="bar-row"><span>Left</span><div class="bar-bg"><div id="bar-left" class="bar left"></div></div><span id="pct-left"></span></div>
         <div class="bar-row"><span>Center</span><div class="bar-bg"><div id="bar-center" class="bar center"></div></div><span id="pct-center"></span></div>
@@ -184,6 +207,7 @@
 
       renderOverallCharts(data);
       renderDecisionSummary(data);
+      renderReasoning(data.reasoning || null);
       renderSentenceAnalysis(data.sentence_analysis || []);
     }
 
@@ -276,6 +300,61 @@
       const certainty = margin >= 20 ? "high" : margin >= 10 ? "moderate" : "low";
       const summary = `${best[0]} leads by ${margin}% over ${second[0]}. This indicates ${certainty} separation between top classes for this text.`;
       document.getElementById("decision-summary").textContent = summary;
+    }
+
+    function renderReasoning(reasoning) {
+      const panel = document.getElementById("reasoning-panel");
+      const summaryEl = document.getElementById("reasoning-summary");
+      const topEl = document.getElementById("reasoning-top");
+      const runnerEl = document.getElementById("reasoning-runner");
+      const marginEl = document.getElementById("reasoning-margin");
+      const evidenceEl = document.getElementById("reasoning-evidence");
+
+      evidenceEl.innerHTML = "";
+
+      if (!reasoning || !reasoning.summary) {
+        panel.classList.add("hidden");
+        return;
+      }
+
+      summaryEl.textContent = reasoning.summary;
+
+      if (reasoning.top_prediction) {
+        topEl.textContent = `${reasoning.top_prediction.name} (${reasoning.top_prediction.confidence}%)`;
+      } else {
+        topEl.textContent = "N/A";
+      }
+
+      if (reasoning.runner_up) {
+        runnerEl.textContent = `${reasoning.runner_up.name} (${reasoning.runner_up.confidence}%)`;
+      } else {
+        runnerEl.textContent = "N/A";
+      }
+
+      marginEl.textContent = reasoning.margin !== undefined ? `${reasoning.margin}%` : "N/A";
+
+      const evidenceItems = Array.isArray(reasoning.top_evidence_sentences)
+        ? reasoning.top_evidence_sentences
+        : [];
+
+      if (!evidenceItems.length) {
+        const empty = document.createElement("div");
+        empty.className = "evidence-item";
+        empty.textContent = "No sentence-level evidence available for this prediction.";
+        evidenceEl.appendChild(empty);
+      } else {
+        for (const item of evidenceItems) {
+          const row = document.createElement("div");
+          row.className = "evidence-item";
+          row.innerHTML = `
+            <div class="evidence-head">${escapeHtml(item.name || "Unknown")} (${item.confidence || 0}%)</div>
+            <div class="evidence-text">${escapeHtml(item.text || "")}</div>
+          `;
+          evidenceEl.appendChild(row);
+        }
+      }
+
+      panel.classList.remove("hidden");
     }
 
     function renderSentenceAnalysis(items) {

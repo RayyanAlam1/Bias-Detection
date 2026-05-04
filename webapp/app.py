@@ -164,6 +164,34 @@ def _predict_text(text: str):
             }
         )
 
+    sorted_idx = np.argsort(probs)[::-1]
+    top1_idx = int(sorted_idx[0])
+    top2_idx = int(sorted_idx[1])
+    top1_conf_pct = round(float(probs[top1_idx]) * 100, 2)
+    top2_conf_pct = round(float(probs[top2_idx]) * 100, 2)
+    margin_pct = round(top1_conf_pct - top2_conf_pct, 2)
+
+    # Use high-confidence sentences that align with the final label as evidence.
+    evidence_sentences = sorted(
+        [s for s in sentence_results if s["label"] == pred_label],
+        key=lambda s: s["confidence"],
+        reverse=True,
+    )[:3]
+
+    if evidence_sentences:
+        reasoning_summary = (
+            f"Predicted {LABEL_INFO[pred_label]['name']} because it has the highest "
+            f"probability ({top1_conf_pct}%) with a {margin_pct}% margin over "
+            f"{LABEL_INFO[top2_idx]['name']} ({top2_conf_pct}%). "
+            f"Top supporting sentence confidence: {evidence_sentences[0]['confidence']}%."
+        )
+    else:
+        reasoning_summary = (
+            f"Predicted {LABEL_INFO[pred_label]['name']} because it has the highest "
+            f"probability ({top1_conf_pct}%) with a {margin_pct}% margin over "
+            f"{LABEL_INFO[top2_idx]['name']} ({top2_conf_pct}%)."
+        )
+
     result = {
         "label": pred_label,
         "name": LABEL_INFO[pred_label]["name"],
@@ -177,6 +205,28 @@ def _predict_text(text: str):
         },
         "sentence_analysis": sentence_results,
         "sentence_count": len(sentence_results),
+        "reasoning": {
+            "summary": reasoning_summary,
+            "top_prediction": {
+                "label": top1_idx,
+                "name": LABEL_INFO[top1_idx]["name"],
+                "confidence": top1_conf_pct,
+            },
+            "runner_up": {
+                "label": top2_idx,
+                "name": LABEL_INFO[top2_idx]["name"],
+                "confidence": top2_conf_pct,
+            },
+            "margin": margin_pct,
+            "top_evidence_sentences": [
+                {
+                    "text": s["text"],
+                    "name": s["name"],
+                    "confidence": s["confidence"],
+                }
+                for s in evidence_sentences
+            ],
+        },
     }
     return result, 200
 
