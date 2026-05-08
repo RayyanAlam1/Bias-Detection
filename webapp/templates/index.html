@@ -184,7 +184,7 @@
     }
 
     function showResult(data) {
-      document.getElementById("result-title").textContent = `${data.emoji} ${data.name} Bias`;
+      document.getElementById("result-title").textContent = `${data.name} Bias`;
       document.getElementById("result-title").style.color = data.color;
       document.getElementById("result-desc").textContent = data.description;
       document.getElementById("result-confidence").textContent = `${data.confidence}% confidence`;
@@ -374,7 +374,7 @@
         const row = document.createElement("div");
         row.className = `sentence-item s-${item.name.toLowerCase()}`;
         row.innerHTML = `
-          <div class="sentence-tag">${item.emoji} ${item.name} (${item.confidence}%)</div>
+          <div class="sentence-tag">${item.name} (${item.confidence}%)</div>
           <div class="sentence-text">${escapeHtml(item.text)}</div>
         `;
         list.appendChild(row);

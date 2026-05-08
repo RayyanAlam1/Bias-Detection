@@ -46,7 +46,6 @@
     <!-- ── Result card ── -->
     <div id="result-card" class="card result-card hidden">
       <div class="result-header">
-        <span id="result-emoji" class="result-emoji"></span>
         <div>
           <div id="result-label" class="result-label"></div>
           <div id="result-desc" class="result-desc"></div>
@@ -136,7 +135,6 @@
     }
 
     function showResult(data) {
-      document.getElementById("result-emoji").textContent  = data.emoji;
       document.getElementById("result-label").textContent  = data.name + " Bias";
       document.getElementById("result-label").style.color  = data.color;
       document.getElementById("result-desc").textContent   = data.description;

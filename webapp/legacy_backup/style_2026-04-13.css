@@ -157,7 +157,6 @@ button#predict-btn:disabled { opacity: .55; cursor: not-allowed; }
   flex-wrap: wrap;
 }
 
-.result-emoji { font-size: 2.8rem; line-height: 1; }
 
 .result-label {
   font-size: 1.6rem;
@@ -257,6 +256,5 @@ footer {
 @media (max-width: 540px) {
   .header-inner { flex-direction: column; align-items: flex-start; }
   .card { padding: 20px 18px; }
-  .result-emoji { font-size: 2rem; }
   .result-label { font-size: 1.3rem; }
 }

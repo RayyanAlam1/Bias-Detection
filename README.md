@@ -1,6 +1,6 @@
 ---
 title: KhabarCheck
-emoji: 📰
+: 📰
 colorFrom: blue
 colorTo: red
 sdk: docker

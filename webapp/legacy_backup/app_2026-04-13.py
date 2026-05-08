@@ -23,19 +23,18 @@ DEVICE     = "cuda" if torch.cuda.is_available() else "cpu"
 LABEL_INFO = {
     0: {
         "name":        "Left",
-        "emoji":       "🔵",
         "description": "Left-leaning political bias detected.",
         "color":       "#3b82f6",
     },
     1: {
         "name":        "Center",
-        "emoji":       "⚖️",
+        "":       "⚖️",
         "description": "Centrist / balanced reporting detected.",
         "color":       "#8b5cf6",
     },
     2: {
         "name":        "Right",
-        "emoji":       "🔴",
+        "":       "🔴",
         "description": "Right-leaning political bias detected.",
         "color":       "#ef4444",
     },
@@ -119,7 +118,7 @@ def predict():
     result = {
         "label":       pred_label,
         "name":        LABEL_INFO[pred_label]["name"],
-        "emoji":       LABEL_INFO[pred_label]["emoji"],
+        "":       LABEL_INFO[pred_label][""],
         "description": LABEL_INFO[pred_label]["description"],
         "color":       LABEL_INFO[pred_label]["color"],
         "confidence":  round(confidence * 100, 2),

@@ -35,19 +35,16 @@ MAX_SENTENCES = 12
 LABEL_INFO = {
     0: {
         "name":        "Left",
-        "emoji":       "🔵",
         "description": "Left-leaning political bias detected.",
         "color":       "#3b82f6",
     },
     1: {
         "name":        "Center",
-        "emoji":       "⚖️",
         "description": "Centrist / balanced reporting detected.",
         "color":       "#8b5cf6",
     },
     2: {
         "name":        "Right",
-        "emoji":       "🔴",
         "description": "Right-leaning political bias detected.",
         "color":       "#ef4444",
     },
@@ -155,7 +152,7 @@ def _predict_text(text: str):
                 "text": sentence,
                 "label": s_label,
                 "name": LABEL_INFO[s_label]["name"],
-                "emoji": LABEL_INFO[s_label]["emoji"],
+                "": LABEL_INFO[s_label][""],
                 "confidence": round(float(s_probs[s_label]) * 100, 2),
                 "probabilities": {
                     LABEL_INFO[i]["name"]: round(float(p) * 100, 2)
@@ -195,7 +192,7 @@ def _predict_text(text: str):
     result = {
         "label": pred_label,
         "name": LABEL_INFO[pred_label]["name"],
-        "emoji": LABEL_INFO[pred_label]["emoji"],
+        "": LABEL_INFO[pred_label][""],
         "description": LABEL_INFO[pred_label]["description"],
         "color": LABEL_INFO[pred_label]["color"],
         "confidence": round(confidence * 100, 2),
