@@ -152,7 +152,7 @@ def _predict_text(text: str):
                 "text": sentence,
                 "label": s_label,
                 "name": LABEL_INFO[s_label]["name"],
-                "": LABEL_INFO[s_label][""],
+                description": LABEL_INFO[s_label]["description"],
                 "confidence": round(float(s_probs[s_label]) * 100, 2),
                 "probabilities": {
                     LABEL_INFO[i]["name"]: round(float(p) * 100, 2)
