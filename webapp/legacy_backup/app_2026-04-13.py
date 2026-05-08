@@ -28,13 +28,11 @@ LABEL_INFO = {
     },
     1: {
         "name":        "Center",
-        "":       "⚖️",
         "description": "Centrist / balanced reporting detected.",
         "color":       "#8b5cf6",
     },
     2: {
         "name":        "Right",
-        "":       "🔴",
         "description": "Right-leaning political bias detected.",
         "color":       "#ef4444",
     },

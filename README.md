@@ -18,7 +18,7 @@ short_description: Detect political bias in news with RoBERTa-Large
 | **Model** | RoBERTa-Large (355M parameters) |
 | **Accuracy** | 85.43% |
 | **F1 Score** | 85.39% |
-| **Classes** | Left 🔵 · Center ⚖️ · Right 🔴 |
+| **Classes** | Left  · Center  · Right  |
 | **Dataset** | 10,020 balanced news articles |
 | **Live Demo** | [HF Spaces](https://huggingface.co/spaces/RayyanAlam123/KhabarCheck) |
 

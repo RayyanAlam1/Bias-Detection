@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 CKPT = r"C:\Users\22K-2127\Desktop\FYP\roberta-large-finetuned-v3\checkpoint-502"
-LABEL = {0: "LEFT  🔵", 1: "CENTER ⚖️", 2: "RIGHT 🔴"}
+LABEL = {0: "LEFT  ", 1: "CENTER ", 2: "RIGHT "}
 
 print("Loading model …")
 tokenizer = AutoTokenizer.from_pretrained(CKPT)

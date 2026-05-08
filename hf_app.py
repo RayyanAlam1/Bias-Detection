@@ -18,9 +18,9 @@ MAX_LENGTH    = 512
 DEVICE        = "cuda" if torch.cuda.is_available() else "cpu"
 
 LABEL_INFO = {
-    0: {"name": "🔵 Left",   "color": "#3b82f6"},
-    1: {"name": "⚖️ Center", "color": "#8b5cf6"},
-    2: {"name": "🔴 Right",  "color": "#ef4444"},
+    0: {"name": "Left",   "color": "#3b82f6"},
+    1: {"name": "Center", "color": "#8b5cf6"},
+    2: {"name": "Right",  "color": "#ef4444"},
 }
 
 # ── Load model ────────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ with gr.Blocks(
     gr.Markdown("""
     # 📰 KhabarCheck
     Detect **political bias** in news articles using `roberta-large` fine-tuned on 10,020 balanced news articles.
-    **Accuracy: 85.43%** | Left 🔵 · Center ⚖️ · Right 🔴
+    **Accuracy: 85.43%** | Left  · Center  · Right 
     """)
 
     with gr.Row():
