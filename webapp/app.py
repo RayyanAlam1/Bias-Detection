@@ -191,7 +191,6 @@ def _predict_text(text: str):
     result = {
         "label": pred_label,
         "name": LABEL_INFO[pred_label]["name"],
-        "": LABEL_INFO[pred_label][""],
         "description": LABEL_INFO[pred_label]["description"],
         "color": LABEL_INFO[pred_label]["color"],
         "confidence": round(confidence * 100, 2),
