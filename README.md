@@ -1,6 +1,5 @@
 ---
 title: KhabarCheck
-: 📰
 colorFrom: blue
 colorTo: red
 sdk: docker
